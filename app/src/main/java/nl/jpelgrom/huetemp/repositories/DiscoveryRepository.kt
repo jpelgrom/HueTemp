@@ -1,12 +1,13 @@
 package nl.jpelgrom.huetemp.repositories
 
-import nl.jpelgrom.huetemp.data.HueBridgeType
-import nl.jpelgrom.huetemp.data.DiscoveredBridge
-import nl.jpelgrom.huetemp.data.DiscoveryService
-import nl.jpelgrom.huetemp.data.HueService
+import android.content.Context
+import kotlinx.coroutines.delay
+import nl.jpelgrom.huetemp.data.*
+import retrofit2.Converter
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+
 
 class DiscoveryRepository {
     private val discoveryService by lazy {
@@ -15,11 +16,24 @@ class DiscoveryRepository {
             .addConverterFactory(MoshiConverterFactory.create())
             .build().create(DiscoveryService::class.java)
     }
-    private lateinit var hueXmlService: HueService
+    private lateinit var hueService: HueService
+    private lateinit var db: AppDatabase
 
-    private fun createHueXmlService(ip: String) {
-        hueXmlService =
-            Retrofit.Builder().baseUrl("http://$ip/").addConverterFactory(ScalarsConverterFactory.create())
+    enum class BridgeLoginTry {
+        SUCCESS,
+        REJECTED,
+        FAILED
+    }
+
+    private fun createHueXmlService(ip: String) =
+        createHueService(ip, ScalarsConverterFactory.create())
+
+    private fun createHueSetupService(ip: String) =
+        createHueService(ip, MoshiConverterFactory.create())
+
+    private fun createHueService(ip: String, factory: Converter.Factory) {
+        hueService =
+            Retrofit.Builder().baseUrl("http://$ip/").addConverterFactory(factory)
                 .build().create(
                     HueService::class.java
                 )
@@ -32,7 +46,7 @@ class DiscoveryRepository {
             val networkBridges = discoveryService.discoverBridges()
             networkBridges.forEach {
                 createHueXmlService(it.internalipaddress)
-                val description = hueXmlService.getBridgeDescription()
+                val description = hueService.getBridgeDescription()
                 if (description != null) {
                     val modelName =
                         description.substringAfter("<modelName>")
@@ -45,7 +59,8 @@ class DiscoveryRepository {
                                 type = if (modelNo == "BSB002") HueBridgeType.V2 else HueBridgeType.V1,
                                 name = description.substringAfter("<friendlyName>")
                                     .substringBefore("</friendlyName>"),
-                                ip = it.internalipaddress
+                                ip = it.internalipaddress,
+                                id = it.id
                             )
                         )
                     }
@@ -58,5 +73,42 @@ class DiscoveryRepository {
 
         foundBridges.add(DiscoveredBridge(type = HueBridgeType.IP))
         return foundBridges
+    }
+
+    fun prepareLoginToBridge(bridge: DiscoveredBridge) {
+        createHueSetupService(bridge.ip!!)
+    }
+
+    suspend fun loginToBridge(bridge: DiscoveredBridge, context: Context?): BridgeLoginTry {
+        return try {
+            if (context == null) {
+                return BridgeLoginTry.FAILED
+            }
+            val result =
+                hueService.createUser(HueDeviceTypeRequest(devicetype = "HueTemp#${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"))
+            when {
+                result.isEmpty() -> throw Exception("Unusable response")
+                result[0].success != null -> {
+                    val dbBridge = DbBridge(
+                        bridge.id!!,
+                        bridge.name!!,
+                        result[0].success!!.username,
+                        bridge.ip!!,
+                        bridge.type
+                    )
+                    db = AppDatabase.getInstance(context)
+                    db.bridges().insertBridge(dbBridge)
+
+                    BridgeLoginTry.SUCCESS
+                }
+                else -> {
+                    delay(2_000)
+                    BridgeLoginTry.REJECTED
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            BridgeLoginTry.FAILED
+        }
     }
 }
