@@ -5,11 +5,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.jpelgrom.huetemp.data.DiscoveredBridge
 import nl.jpelgrom.huetemp.data.HueBridgeType
 import nl.jpelgrom.huetemp.repositories.DiscoveryRepository
+import nl.jpelgrom.huetemp.service.TemperatureUpdatesWorker
+import java.util.concurrent.TimeUnit
 
 class AddBridgeViewModel : ViewModel() {
     enum class CurrentState {
@@ -49,6 +52,20 @@ class AddBridgeViewModel : ViewModel() {
             if (currentState.value == CurrentState.PUSHLINK) {
                 cancelPushlink() // Must've reached the limit
             } else if (currentState.value == CurrentState.CONNECTED) {
+                if (context != null) {
+                    val constraints =
+                        Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                    val updaterRequest =
+                        PeriodicWorkRequestBuilder<TemperatureUpdatesWorker>(15, TimeUnit.MINUTES)
+                            .setConstraints(constraints)
+                            .build()
+                    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                        "temperatureUpdatesWorker",
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        updaterRequest
+                    )
+                }
+
                 delay(3_000)
                 currentState.value = CurrentState.CLOSE
             } // else SEARCHING, user cancelled

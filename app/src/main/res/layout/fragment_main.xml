@@ -15,6 +15,12 @@
         android:id="@+id/addBridgeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add bridge"/>
+        android:text="Add bridge" />
+
+    <Button
+        android:id="@+id/runWorkerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Run worker" />
 
 </LinearLayout>

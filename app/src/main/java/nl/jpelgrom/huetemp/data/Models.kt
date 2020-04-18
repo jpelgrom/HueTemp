@@ -1,7 +1,9 @@
 package nl.jpelgrom.huetemp.data
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
 enum class HueBridgeType {
     V1, V2, IP
@@ -23,6 +25,16 @@ data class HueDeviceTypeResponse(
 
 data class HueDeviceTypeSuccessResponse(val username: String)
 
+data class HueSensor(val name: String, val uniqueid: String, val type: String)
+data class HueTemperatureSensor(
+    val name: String,
+    val uniqueid: String,
+    val type: String,
+    val state: HueTemperatureSensorState
+)
+
+data class HueTemperatureSensorState(val temperature: Int, val lastupdated: String)
+
 data class HueErrorResponse(val type: Int, val address: String, val description: String)
 
 @Entity(tableName = "Bridges")
@@ -32,4 +44,27 @@ data class DbBridge(
     val key: String,
     val ip: String,
     val type: HueBridgeType
+)
+
+@Entity(tableName = "Sensors")
+data class DbSensor(
+    @PrimaryKey val id: String,
+    val bridgeid: String,
+    val apiid: String,
+    val name: String,
+    val type: String
+)
+
+@Entity(tableName = "TemperatureReadings")
+data class DbTemperatureReading(
+    @PrimaryKey val id: String,
+    val sensorid: String,
+    val value: Int,
+    val datetime: String,
+    val retrieved: String
+)
+
+data class DbBridgeWithSensors(
+    @Embedded val bridge: DbBridge,
+    @Relation(parentColumn = "id", entityColumn = "bridgeid") val sensors: List<DbSensor>
 )
