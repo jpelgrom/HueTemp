@@ -38,16 +38,8 @@ class HueRepository(appContext: Context) {
     suspend fun updateSensorsForBridge(bridge: DbBridge) {
         createHueService(bridge.ip, bridge.key)
 
-        lateinit var apiSensors: Map<String, HueSensor>
-        lateinit var dbSensors: List<DbSensor>
-        try {
-            apiSensors = hueService.getSensors()
-            dbSensors = db.sensors().getSensorsSynchronous()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
-        }
-
+        val apiSensors = hueService.getSensors()
+        val dbSensors = db.sensors().getSensorsSynchronous()
 
         val apiTemperatureSensors = apiSensors.filter { it.value.type == "ZLLTemperature" }
         val apiTemperatureSensorsList = ArrayList<DbSensor>()
