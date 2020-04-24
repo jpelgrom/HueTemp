@@ -8,7 +8,7 @@ interface HueBridgesDao {
     suspend fun insertBridge(bridge: DbBridge)
 
     @Query("SELECT * FROM Bridges")
-    suspend fun getBridgesSynchronous(): List<DbBridge>
+    suspend fun getBridgesDirect(): List<DbBridge>
 
     @Query("SELECT * FROM Bridges WHERE id = :id")
     suspend fun getBridge(id: String): DbBridge

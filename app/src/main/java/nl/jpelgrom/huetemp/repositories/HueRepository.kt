@@ -30,16 +30,16 @@ class HueRepository(appContext: Context) {
 
     }
 
-    suspend fun getBridges(): List<DbBridge> = db.bridges().getBridgesSynchronous()
+    suspend fun getBridges(): List<DbBridge> = db.bridges().getBridgesDirect()
 
     suspend fun getSensorsForBridge(bridge: DbBridge): List<DbSensor> =
-        db.sensors().getSensorsForBridgeSynchronous(bridge.id)
+        db.sensors().getSensorsForBridgeDirect(bridge.id)
 
     suspend fun updateSensorsForBridge(bridge: DbBridge) {
         createHueService(bridge.ip, bridge.key)
 
         val apiSensors = hueService.getSensors()
-        val dbSensors = db.sensors().getSensorsSynchronous()
+        val dbSensors = db.sensors().getSensorsDirect()
 
         val apiTemperatureSensors = apiSensors.filter { it.value.type == "ZLLTemperature" }
         val apiTemperatureSensorsList = ArrayList<DbSensor>()

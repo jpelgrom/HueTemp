@@ -8,10 +8,10 @@ interface HueSensorsDao {
     suspend fun insertSensor(sensor: DbSensor)
 
     @Query("SELECT * FROM Sensors")
-    suspend fun getSensorsSynchronous(): List<DbSensor>
+    suspend fun getSensorsDirect(): List<DbSensor>
 
     @Query("SELECT * FROM Sensors WHERE bridgeid = :bridgeid")
-    suspend fun getSensorsForBridgeSynchronous(bridgeid: String): List<DbSensor>
+    suspend fun getSensorsForBridgeDirect(bridgeid: String): List<DbSensor>
 
     @Query("SELECT * FROM Sensors WHERE id = :id")
     suspend fun getSensor(id: String): DbSensor

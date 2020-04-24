@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">HueTemp</string>
     <string name="discovery_manualip">Connect manually using IP address</string>
+
+    <string name="notifications_channel_temperaturesync_title">Hue bridge sync</string>
+    <string name="notifications_worker_temperaturesync_title">Sync in progress</string>
+    <string name="notifications_worker_temperaturesync_cancel">Cancel</string>
+    <string name="notifications_worker_temperaturesync_start">Preparing…</string>
+    <string name="notifications_worker_temperaturesync_bridge">Connecting to Hue bridge…</string>
+    <string name="notifications_worker_temperaturesync_sensor">Updating temperature from sensor…</string>
+    <string name="notifications_worker_temperaturesync_done">Wrapping up…</string>
 </resources>

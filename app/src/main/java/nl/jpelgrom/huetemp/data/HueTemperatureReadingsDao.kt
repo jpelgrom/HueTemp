@@ -8,10 +8,10 @@ interface HueTemperatureReadingsDao {
     suspend fun insertReading(reading: DbTemperatureReading)
 
     @Query("SELECT * FROM TemperatureReadings")
-    suspend fun getReadingsSynchronous(): List<DbTemperatureReading>
+    suspend fun getReadingsDirect(): List<DbTemperatureReading>
 
     @Query("SELECT * FROM TemperatureReadings WHERE sensorid = :sensorid")
-    suspend fun getReadingsForSensorSynchronous(sensorid: String): List<DbTemperatureReading>
+    suspend fun getReadingsForSensorDirect(sensorid: String): List<DbTemperatureReading>
 
     @Update
     suspend fun updateReading(reading: DbTemperatureReading)

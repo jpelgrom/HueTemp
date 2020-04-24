@@ -81,7 +81,7 @@ class AddBridgeFragment : BottomSheetDialogFragment() {
             val forward =
                 (lastState == AddBridgeViewModel.CurrentState.SEARCHING && newState == AddBridgeViewModel.CurrentState.PUSHLINK) || (lastState == AddBridgeViewModel.CurrentState.PUSHLINK && newState == AddBridgeViewModel.CurrentState.CONNECTED)
             val sharedAxis =
-                MaterialSharedAxis.create(requireContext(), MaterialSharedAxis.X, forward)
+                MaterialSharedAxis.create(MaterialSharedAxis.X, forward)
             TransitionManager.beginDelayedTransition(binding.bridgeContainer, sharedAxis)
         }
     }
