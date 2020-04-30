@@ -4,9 +4,14 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import java.time.ZonedDateTime
 
 enum class HueBridgeType {
     V1, V2, IP
+}
+
+enum class HueSyncState {
+    AVAILABLE, UNAVAILABLE
 }
 
 data class DiscoveryBridge(val id: String, val internalipaddress: String)
@@ -33,7 +38,7 @@ data class HueTemperatureSensor(
     val state: HueTemperatureSensorState
 )
 
-data class HueTemperatureSensorState(val temperature: Int, val lastupdated: String)
+data class HueTemperatureSensorState(val temperature: Int, val lastupdated: ZonedDateTime)
 
 data class HueErrorResponse(val type: Int, val address: String, val description: String)
 
@@ -49,22 +54,23 @@ data class DbBridge(
 @Entity(tableName = "Sensors")
 data class DbSensor(
     @PrimaryKey val id: String,
-    val bridgeid: String,
+    val bridge: String,
     val apiid: String,
     val name: String,
-    val type: String
+    val type: String,
+    var syncState: HueSyncState = HueSyncState.AVAILABLE
 )
 
 @Entity(tableName = "TemperatureReadings")
 data class DbTemperatureReading(
-    @PrimaryKey val id: String,
-    val sensorid: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val sensor: String,
     val value: Int,
-    val datetime: String,
-    val retrieved: String
+    val datetime: ZonedDateTime,
+    val retrieved: Long
 )
 
 data class DbBridgeWithSensors(
     @Embedded val bridge: DbBridge,
-    @Relation(parentColumn = "id", entityColumn = "bridgeid") val sensors: List<DbSensor>
+    @Relation(parentColumn = "id", entityColumn = "bridge") val sensors: List<DbSensor>
 )

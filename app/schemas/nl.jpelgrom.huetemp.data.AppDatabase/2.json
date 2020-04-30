@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "bd5667676254d66972de8c2956214bc3",
+    "identityHash": "00e93e22c71fbaa03de2620453da4d24",
     "entities": [
       {
         "tableName": "Bridges",
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "Sensors",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `bridgeid` TEXT NOT NULL, `apiid` TEXT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `bridge` TEXT NOT NULL, `apiid` TEXT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `syncState` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -59,8 +59,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "bridgeid",
-            "columnName": "bridgeid",
+            "fieldPath": "bridge",
+            "columnName": "bridge",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -81,6 +81,12 @@
             "columnName": "type",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "syncState",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -94,17 +100,17 @@
       },
       {
         "tableName": "TemperatureReadings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `sensorid` TEXT NOT NULL, `value` INTEGER NOT NULL, `datetime` TEXT NOT NULL, `retrieved` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sensor` TEXT NOT NULL, `value` INTEGER NOT NULL, `datetime` TEXT NOT NULL, `retrieved` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "sensorid",
-            "columnName": "sensorid",
+            "fieldPath": "sensor",
+            "columnName": "sensor",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -123,7 +129,7 @@
           {
             "fieldPath": "retrieved",
             "columnName": "retrieved",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           }
         ],
@@ -131,7 +137,7 @@
           "columnNames": [
             "id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
@@ -140,7 +146,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bd5667676254d66972de8c2956214bc3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '00e93e22c71fbaa03de2620453da4d24')"
     ]
   }
 }

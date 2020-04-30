@@ -2,11 +2,11 @@ package nl.jpelgrom.huetemp.repositories
 
 import android.content.Context
 import android.util.Log
+import com.squareup.moshi.Moshi
 import nl.jpelgrom.huetemp.data.*
+import nl.jpelgrom.huetemp.util.ZonedDateTimeAdapter
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import java.util.*
-import kotlin.collections.ArrayList
 
 class HueRepository(appContext: Context) {
 
@@ -18,9 +18,10 @@ class HueRepository(appContext: Context) {
     private var hueServiceForIP: String? = null
     private fun createHueService(ip: String, username: String) {
         if (hueServiceForIP == null || hueServiceForIP != ip) {
+            val moshi = Moshi.Builder().add(ZonedDateTimeAdapter()).build()
             hueService =
                 Retrofit.Builder().baseUrl("http://$ip/api/$username/").addConverterFactory(
-                    MoshiConverterFactory.create()
+                    MoshiConverterFactory.create(moshi)
                 )
                     .build().create(
                         HueService::class.java
@@ -62,25 +63,24 @@ class HueRepository(appContext: Context) {
         }
 
         dbSensors.forEach {
-            // TODO mark as unavailable instead?
             val foundInApi = apiTemperatureSensorsList.any { fromApi -> fromApi.id == it.id }
             if (!foundInApi) {
-                db.sensors().deleteSensor(it)
+                it.syncState = HueSyncState.UNAVAILABLE
+                db.sensors().updateSensor(it)
             }
         }
     }
 
     suspend fun updateTemperatureReadingForSensor(sensor: DbSensor) {
-        val bridge = db.bridges().getBridge(sensor.bridgeid)
+        val bridge = db.bridges().getBridge(sensor.bridge)
         createHueService(bridge.ip, bridge.key)
 
         val apiResult = hueService.getSensor(sensor.apiid)
         val dbReading = DbTemperatureReading(
-            UUID.randomUUID().toString(),
-            sensor.id,
-            apiResult.state.temperature,
-            apiResult.state.lastupdated,
-            System.currentTimeMillis().toString()
+            sensor = sensor.id,
+            value = apiResult.state.temperature,
+            datetime = apiResult.state.lastupdated,
+            retrieved = System.currentTimeMillis()
         )
         Log.i("HueRepository", "Saving new reading: $dbReading")
         db.readings().insertReading(dbReading)
